@@ -64,7 +64,7 @@ async function checkDevice() {
 }
 ```
 
-## 📖 API Reference
+##s API Reference
 
 ### Hooks
 
@@ -121,7 +121,7 @@ Async function to get only the spec category.
 const spec = await getDeviceSpecSimple(); // 'low' | 'mid' | 'high'
 ```
 
-## 🎯 Use Cases
+## Use Cases
 
 ### 1. Performance Optimization
 
@@ -168,7 +168,7 @@ const getImageSource = (name: string) => {
 };
 ```
 
-## 🔬 How It Works
+## How It Works
 
 The detector uses a scoring system based on:
 
@@ -184,7 +184,7 @@ The detector uses a scoring system based on:
 - **Score 40-69** → Mid Spec  
 - **Score <40** → Low Spec
 
-## 📊 Examples
+## Examples
 
 ### Device Classification
 
@@ -194,18 +194,18 @@ The detector uses a scoring system based on:
 | Samsung Galaxy A54 | 6GB | Exynos 1380 | **Mid** |
 | Redmi 10A | 3GB | Helio G25 | **Low** |
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📝 License
+## License
 
 MIT © [Listiananda Apriliawan](https://naandalist.com/)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 Built with [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info)
 
 ---
 
-**Note:** Device categorization is based on hardware specifications and may not reflect actual performance in all scenarios. Always test your app on real devices.
+**Note:** *Device categorization is based on hardware specifications and may not reflect actual performance in all scenarios. Always test your app on real devices.*
