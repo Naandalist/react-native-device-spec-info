@@ -1,6 +1,6 @@
 {
   "name": "react-native-device-spec-info",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lightweight utility to get React Native device specifications (low/mid/high).",
   "main": "lib/index.js",
   "module": "lib/index.esm.js",
