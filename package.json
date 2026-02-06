@@ -48,12 +48,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/naandalist/react-native-device-spec-detector.git"
+    "url": "https://github.com/Naandalist/react-native-device-spec-info.git"
   },
   "bugs": {
-    "url": "https://github.com/naandalist/react-native-device-spec-detector/issues"
+    "url": "https://github.com/Naandalist/react-native-device-spec-info/issues"
   },
-  "homepage": "https://github.com/naandalist/react-native-device-spec-detector#readme",
+  "homepage": "https://github.com/Naandalist/react-native-device-spec-info#readme",
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-native": ">=0.60.0",
