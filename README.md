@@ -9,7 +9,7 @@
 Categorize mobile devices as **low-end**, **mid-range**, or **high-end** based on hardware specifications. Optimize React Native app's performance by adapting features, animations, and assets to device capabilities.
 
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install react-native-device-spec-info react-native-device-info
@@ -27,7 +27,7 @@ yarn add react-native-device-spec-info react-native-device-info
 cd ios && pod install && cd ..
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Using the Hook (Recommended)
 
