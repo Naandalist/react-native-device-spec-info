@@ -1,0 +1,74 @@
+{
+  "name": "react-native-device-spec-info",
+  "version": "1.0.0",
+  "description": "Lightweight utility to get React Native device specifications (low/mid/high).",
+  "main": "lib/index.js",
+  "module": "lib/index.esm.js",
+  "types": "lib/index.d.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "RNDeviceSpecDetector.podspec",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm && npm run build:types",
+    "build:cjs": "tsc --module commonjs --outDir lib",
+    "build:esm": "tsc --module esnext --outDir /tmp/lib-esm --declaration false --declarationMap false && cp /tmp/lib-esm/index.js lib/index.esm.js && rm -rf /tmp/lib-esm",
+    "build:types": "tsc --emitDeclarationOnly --outDir lib",
+    "prepare": "npm run build",
+    "test": "echo \"No tests yet\" && exit 0",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "clean": "rm -rf lib"
+  },
+  "keywords": [
+    "react-native",
+    "device",
+    "specs",
+    "specification",
+    "performance",
+    "optimization",
+    "low-end",
+    "mid-range",
+    "high-end",
+    "ram",
+    "cpu",
+    "hardware",
+    "info",
+    "mobile"
+  ],
+  "author": "Listiananda Apriliawan <listiananda.apriliawan@gmail.com>",
+  "username": "naandalist",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naandalist/react-native-device-spec-detector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/naandalist/react-native-device-spec-detector/issues"
+  },
+  "homepage": "https://github.com/naandalist/react-native-device-spec-detector#readme",
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-native": ">=0.60.0",
+    "react-native-device-info": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.72.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "react-native-device-info": "^15.0.1",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
+}
