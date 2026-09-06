@@ -1,8 +1,12 @@
 module.exports = {
-  project: {
-    ios: {},
-    android: {},
+  dependency: {
+    platforms: {
+      android: {
+        sourceDir: './android',
+        packageImportPath: 'import com.devicespecdetector.RNCpuInfoPackage;',
+        packageInstance: 'new RNCpuInfoPackage()',
+      },
+      ios: {},
+    },
   },
-  // Don't auto-link this package - let's use it as JS-only for now
-  commands: [],
 };
