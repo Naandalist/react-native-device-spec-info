@@ -115,7 +115,6 @@ function App(): React.JSX.Element {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>
             Device Spec Info
@@ -125,7 +124,6 @@ function App(): React.JSX.Element {
           </Text>
         </View>
 
-        {/* Loading State */}
         {isLoading ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={specDisplay.color} />
@@ -134,14 +132,11 @@ function App(): React.JSX.Element {
             </Text>
           </View>
         ) : error ? (
-          /* Error State */
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error: {error.message}</Text>
           </View>
         ) : (
-          /* Main Content */
           <>
-            {/* Spec Category Card */}
             <View
               style={[
                 styles.specCard,
@@ -154,16 +149,11 @@ function App(): React.JSX.Element {
               <Text style={[styles.specCategory, { color: specDisplay.color }]}>
                 {specDisplay.description}
               </Text>
-              <Text
-                style={[
-                  styles.specValue,
-                  { color: specDisplay.color },
-                ]}>
+              <Text style={[styles.specValue, { color: specDisplay.color }]}>
                 {spec?.toUpperCase()}
               </Text>
             </View>
 
-            {/* Device Details */}
             {details && (
               <View style={[styles.detailsCard, { backgroundColor: colors.cardBg }]}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>
@@ -186,7 +176,7 @@ function App(): React.JSX.Element {
                 <InfoCard
                   label="Screen Size"
                   value={details.screenSize.toFixed(2)}
-                  unit="inches"
+                  unit="inches (est.)"
                   labelColor={colors.secondaryText}
                   valueColor={colors.text}
                 />
@@ -212,30 +202,29 @@ function App(): React.JSX.Element {
               </View>
             )}
 
-            {/* Scoring Legend */}
             <View style={[styles.legendCard, { backgroundColor: colors.cardBg }]}>
               <Text style={[styles.cardTitle, { color: colors.text }]}>
                 Scoring System
               </Text>
 
               <LegendItem
-                label="RAM (40%)"
-                value="8GB+ (high), 4-8GB (mid), <4GB (low)"
+                label="RAM (35%)"
+                value="12GB+ max, 8GB high, 4-6GB mid, <4GB low"
                 color={colors.secondaryText}
               />
               <LegendItem
-                label="CPU (30%)"
-                value="8+ cores (high), 4-6 cores (mid), <4 cores (low)"
+                label="CPU (25%)"
+                value="8+ cores high, 6 mid-high, 4 mid, <4 low"
                 color={colors.secondaryText}
               />
               <LegendItem
-                label="Display (20%)"
-                value="Screen size + pixel density"
+                label="Display (25%)"
+                value="Pixel density + estimated diagonal inches"
                 color={colors.secondaryText}
               />
               <LegendItem
-                label="OS Version (10%)"
-                value="Latest versions score higher"
+                label="OS Version (15%)"
+                value="Newer OS versions score higher"
                 color={colors.secondaryText}
               />
 

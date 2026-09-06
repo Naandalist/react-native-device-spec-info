@@ -6,8 +6,23 @@
 [![npm downloads](https://img.shields.io/npm/dm/react-native-device-spec-info.svg)](https://www.npmjs.com/package/react-native-device-spec-info)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Categorize mobile devices as **low-end**, **mid-range**, or **high-end** based on hardware specifications. Optimize React Native app's performance by adapting features, animations, and assets to device capabilities.
+Categorize mobile devices as **low-end**, **mid-range**, or **high-end** based on hardware specifications. Optimize a React Native app's performance by adapting features, animations, and assets to device capabilities.
 
+This is a heuristic, not a benchmark. Always test on real devices.
+
+**Peer dependency:** [`react-native-device-info`](https://github.com/react-native-device-info/react-native-device-info) `>= 10`.
+
+## Compatibility
+
+| Environment | Status |
+|---|---|
+| Bare React Native (autolinking) | Supported |
+| Expo Dev Client / prebuild | Supported after a native rebuild |
+| Expo Go | **Not supported** (custom native CPU module) |
+| New Architecture | Legacy bridge module (not a Turbo Module yet) |
+| Web / Windows | Not supported |
+
+After install, rebuild the native app. `pod install` is required on iOS.
 
 ## Installation
 
@@ -27,6 +42,8 @@ yarn add react-native-device-spec-info react-native-device-info
 cd ios && pod install && cd ..
 ```
 
+Then rebuild the app (`npx react-native run-ios` / `run-android`). Autolinking registers the `RNCpuInfo` native module.
+
 ## Quick Start
 
 ### Using the Hook (Recommended)
@@ -35,10 +52,14 @@ cd ios && pod install && cd ..
 import { useDeviceSpec } from 'react-native-device-spec-info';
 
 function MyComponent() {
-  const { spec, isLoading } = useDeviceSpec();
+  const { spec, isLoading, error } = useDeviceSpec();
 
   if (isLoading) {
     return <ActivityIndicator />;
+  }
+
+  if (error || !spec) {
+    return <FallbackUI />;
   }
 
   return (
@@ -58,13 +79,16 @@ import { getDeviceSpec } from 'react-native-device-spec-info';
 
 async function checkDevice() {
   const { spec, details } = await getDeviceSpec();
-  
+
   console.log(spec); // 'low' | 'mid' | 'high'
-  console.log(details.totalMemory); // e.g., 6.5 GB
+  console.log(details.totalMemory); // e.g., 6.5
+  console.log(details.cpuCores); // e.g., 8
 }
 ```
 
-##s API Reference
+`getDeviceSpec()` caches the result for the process lifetime. It **throws** if hardware info cannot be read — it does not invent a `'mid'` category.
+
+## API Reference
 
 ### Hooks
 
@@ -77,14 +101,15 @@ const { spec, details, isLoading, error } = useDeviceSpec();
 ```
 
 **Returns:**
+
 ```typescript
 {
   spec: 'low' | 'mid' | 'high' | null;
   details: {
     totalMemory: number;      // GB
-    cpuCount: number;         // Number of cores
-    screenSize: number;       // Inches (diagonal)
-    pixelDensity: number;     // Scale factor
+    cpuCores: number;         // Number of cores
+    screenSize: number;       // Estimated inches (diagonal)
+    pixelDensity: number;     // PixelRatio scale factor
     osVersion: string;        // OS version
     isTablet: boolean;        // Tablet or phone
   } | null;
@@ -105,8 +130,6 @@ const spec = useDeviceSpecSimple(); // 'low' | 'mid' | 'high' | null
 
 #### `getDeviceSpec()`
 
-Async function to get device specification.
-
 ```typescript
 const result = await getDeviceSpec();
 ```
@@ -115,11 +138,13 @@ const result = await getDeviceSpec();
 
 #### `getDeviceSpecSimple()`
 
-Async function to get only the spec category.
-
 ```typescript
 const spec = await getDeviceSpecSimple(); // 'low' | 'mid' | 'high'
 ```
+
+#### `clearDeviceSpecCache()`
+
+Clears the in-memory cache. Useful in tests.
 
 ## Use Cases
 
@@ -174,29 +199,34 @@ The detector uses a scoring system based on:
 
 | Factor | Weight | Criteria |
 |--------|--------|----------|
-| **RAM** | 40% | 8GB+ (high), 4-8GB (mid), <4GB (low) |
-| **CPU Cores** | 30% | 8+ cores (high), 4-6 cores (mid), <4 cores (low) |
-| **Display** | 20% | Screen size + pixel density |
-| **OS Version** | 10% | Latest versions score higher |
+| **RAM** | 35% | 12GB+ max, 8GB high, 6GB upper-mid, 4GB mid, <4GB low |
+| **CPU cores** | 25% | 8+ high, 6 mid-high, 4 mid, <4 low |
+| **Display** | 25% | Pixel density + estimated diagonal (points/dp ÷ 163 iOS / 160 Android) |
+| **OS version** | 15% | Newer OS versions score higher |
 
-**Final Categories:**
-- **Score ≥70** → High Spec
-- **Score 40-69** → Mid Spec  
-- **Score <40** → Low Spec
+**Final categories:**
+
+- **Score ≥70** → High spec
+- **Score 40–69** → Mid spec
+- **Score <40** → Low spec
+
+Screen size is an estimate. Core count is not the same as chip performance (a cheap 8-core Android can outscore a 6-core iPhone on this axis alone).
 
 ## Examples
 
 ### Device Classification
 
-| Device | RAM | CPU | Category |
-|--------|-----|-----|----------|
-| iPhone 15 Pro | 8GB | A17 Pro | **High** |
-| Samsung Galaxy A54 | 6GB | Exynos 1380 | **Mid** |
-| Redmi 10A | 3GB | Helio G25 | **Low** |
+These are illustrative. Re-test after changing weights.
+
+| Device | RAM | Notes | Typical category |
+|--------|-----|-------|------------------|
+| iPhone 15 Pro | 8GB | 6 cores, high density | **High** or **mid** depending on score mix |
+| Samsung Galaxy A54 | 6GB | 8 cores | **Mid** |
+| Redmi 10A | 3GB | 8 cores, low RAM | **Low** / low-mid |
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome. Please open a pull request.
 
 ## License
 
@@ -204,8 +234,4 @@ MIT © [Listiananda Apriliawan](https://naandalist.com/)
 
 ## Acknowledgments
 
-Built with [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info)
-
----
-
-**Note:** *Device categorization is based on hardware specifications and may not reflect actual performance in all scenarios. Always test your app on real devices.*
+Built with [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info).

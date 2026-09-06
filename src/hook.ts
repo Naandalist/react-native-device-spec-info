@@ -3,27 +3,10 @@ import { getDeviceSpec } from './detector';
 import type { DeviceSpec, DeviceSpecInfo, UseDeviceSpecReturn } from './types';
 
 /**
- * React hook to detect and categorize device specifications
- * 
- * @returns {UseDeviceSpecReturn} Device specification information with loading and error states
- * 
- * @example
- * ```typescript
- * function MyComponent() {
- *   const { spec, details, isLoading } = useDeviceSpec();
- *   
- *   if (isLoading) return <Loading />;
- *   
- *   return (
- *     <View>
- *       <Text>Device Spec: {spec}</Text>
- *       {spec === 'low' && <SimplifiedUI />}
- *       {spec === 'mid' && <StandardUI />}
- *       {spec === 'high' && <EnhancedUI />}
- *     </View>
- *   );
- * }
- * ```
+ * React hook to detect and categorize device specifications.
+ *
+ * `spec` stays `null` until detection succeeds. Failures populate `error`
+ * and do not invent a `'mid'` category.
  */
 export const useDeviceSpec = (): UseDeviceSpecReturn => {
   const [spec, setSpec] = useState<DeviceSpec | null>(null);
@@ -34,11 +17,11 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
   useEffect(() => {
     let isMounted = true;
 
-    const detectDeviceSpec = async () => {
+    const detect = async () => {
       try {
         setIsLoading(true);
         const result = await getDeviceSpec();
-        
+
         if (isMounted) {
           setSpec(result.spec);
           setDetails(result.details);
@@ -47,8 +30,8 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unknown error'));
-          // Fallback to mid-spec on error
-          setSpec('mid');
+          setSpec(null);
+          setDetails(null);
         }
       } finally {
         if (isMounted) {
@@ -57,7 +40,7 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
       }
     };
 
-    detectDeviceSpec();
+    detect();
 
     return () => {
       isMounted = false;
@@ -68,20 +51,7 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
 };
 
 /**
- * Simplified hook that returns only the spec category
- * 
- * @returns {DeviceSpec | null} Device specification category
- * 
- * @example
- * ```typescript
- * function MyComponent() {
- *   const spec = useDeviceSpecSimple();
- *   
- *   if (!spec) return <Loading />;
- *   
- *   return <View>{spec === 'high' && <HighQualityFeature />}</View>;
- * }
- * ```
+ * Simplified hook that returns only the spec category (`null` while loading or on error).
  */
 export const useDeviceSpecSimple = (): DeviceSpec | null => {
   const { spec } = useDeviceSpec();

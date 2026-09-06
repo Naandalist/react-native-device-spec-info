@@ -1,9 +1,4 @@
-# Source files
-src/
-*.ts
-!*.d.ts
-
-# Config files
+# Config (keep source + native + compiled output in the tarball)
 tsconfig.json
 .eslintrc.js
 .prettierrc
@@ -23,16 +18,22 @@ coverage/
 __tests__/
 __mocks__/
 
-# Documentation
+# Example app (folder is `example/`, not `examples/`)
+example/
 docs/
-examples/
 
-# CI/CD
+# CI
 .github/
 .gitlab-ci.yml
 .travis.yml
 
-# Misc
+# Native build artifacts
+android/build/
+android/.gradle/
+ios/Pods/
+ios/build/
+
+# Pack artifacts
 *.tgz
 .env
 .env.*
