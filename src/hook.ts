@@ -2,14 +2,9 @@ import { useState, useEffect } from 'react';
 import { getDeviceSpec } from './detector';
 import type { DeviceSpec, DeviceSpecInfo, UseDeviceSpecReturn } from './types';
 
-/**
- * React hook to detect and categorize device specifications.
- *
- * `spec` stays `null` until detection succeeds. Failures populate `error`
- * and do not invent a `'mid'` category.
- */
 export const useDeviceSpec = (): UseDeviceSpecReturn => {
   const [spec, setSpec] = useState<DeviceSpec | null>(null);
+  const [score, setScore] = useState<number | null>(null);
   const [details, setDetails] = useState<DeviceSpecInfo['details'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -24,6 +19,7 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
 
         if (isMounted) {
           setSpec(result.spec);
+          setScore(result.score);
           setDetails(result.details);
           setError(null);
         }
@@ -31,6 +27,7 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unknown error'));
           setSpec(null);
+          setScore(null);
           setDetails(null);
         }
       } finally {
@@ -47,12 +44,9 @@ export const useDeviceSpec = (): UseDeviceSpecReturn => {
     };
   }, []);
 
-  return { spec, details, isLoading, error };
+  return { spec, score, details, isLoading, error };
 };
 
-/**
- * Simplified hook that returns only the spec category (`null` while loading or on error).
- */
 export const useDeviceSpecSimple = (): DeviceSpec | null => {
   const { spec } = useDeviceSpec();
   return spec;
