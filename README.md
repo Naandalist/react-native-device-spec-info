@@ -6,7 +6,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/react-native-device-spec-info.svg)](https://www.npmjs.com/package/react-native-device-spec-info)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Categorize mobile devices as **low-end**, **mid-range**, or **high-end** based on hardware specifications. Optimize a React Native app's performance by adapting features, animations, and assets to device capabilities.
+Categorize mobile devices as **low-end**, **mid-range**, or **high-end** based on hardware specifications.
 
 This is a heuristic, not a benchmark. Always test on real devices.
 
@@ -17,9 +17,13 @@ This is a heuristic, not a benchmark. Always test on real devices.
 | Environment | Status |
 |---|---|
 | Bare React Native (autolinking) | Supported |
+| Example app | React Native **0.79** / React 19 |
+| Library peer range | `react-native >= 0.60` (not actively tested below 0.72) |
+| iOS | 11.0+ (podspec) |
+| Android | minSdk 21 |
 | Expo Dev Client / prebuild | Supported after a native rebuild |
 | Expo Go | **Not supported** (custom native CPU module) |
-| New Architecture | Legacy bridge module (not a Turbo Module yet) |
+| New Architecture | Legacy bridge module only (`RCT_EXPORT_MODULE` / `ReactContextBaseJavaModule`). Not a Turbo Module. |
 | Web / Windows | Not supported |
 
 After install, rebuild the native app. `pod install` is required on iOS.
@@ -30,40 +34,26 @@ After install, rebuild the native app. `pod install` is required on iOS.
 npm install react-native-device-spec-info react-native-device-info
 ```
 
-or
-
-```bash
-yarn add react-native-device-spec-info react-native-device-info
-```
-
-### iOS Setup
-
 ```bash
 cd ios && pod install && cd ..
 ```
 
-Then rebuild the app (`npx react-native run-ios` / `run-android`). Autolinking registers the `RNCpuInfo` native module.
+Then rebuild (`npx react-native run-ios` / `run-android`).
 
 ## Quick Start
-
-### Using the Hook (Recommended)
 
 ```typescript
 import { useDeviceSpec } from 'react-native-device-spec-info';
 
 function MyComponent() {
-  const { spec, isLoading, error } = useDeviceSpec();
+  const { spec, score, isLoading, error } = useDeviceSpec();
 
-  if (isLoading) {
-    return <ActivityIndicator />;
-  }
-
-  if (error || !spec) {
-    return <FallbackUI />;
-  }
+  if (isLoading) return <ActivityIndicator />;
+  if (error || !spec) return <FallbackUI />;
 
   return (
     <View>
+      <Text>{spec} ({score})</Text>
       {spec === 'low' && <SimplifiedUI />}
       {spec === 'mid' && <StandardUI />}
       {spec === 'high' && <EnhancedUI />}
@@ -72,166 +62,79 @@ function MyComponent() {
 }
 ```
 
-### Using the Utility Directly
-
 ```typescript
 import { getDeviceSpec } from 'react-native-device-spec-info';
 
-async function checkDevice() {
-  const { spec, details } = await getDeviceSpec();
-
-  console.log(spec); // 'low' | 'mid' | 'high'
-  console.log(details.totalMemory); // e.g., 6.5
-  console.log(details.cpuCores); // e.g., 8
-}
+const { spec, score, details } = await getDeviceSpec();
 ```
 
-`getDeviceSpec()` caches the result for the process lifetime. It **throws** if hardware info cannot be read — it does not invent a `'mid'` category.
+`getDeviceSpec()` caches the result for the process lifetime. It **throws** if hardware info cannot be read.
 
 ## API Reference
 
-### Hooks
-
-#### `useDeviceSpec()`
-
-Returns device specification with loading and error states.
+### `useDeviceSpec()`
 
 ```typescript
-const { spec, details, isLoading, error } = useDeviceSpec();
+const { spec, score, details, isLoading, error } = useDeviceSpec();
 ```
 
-**Returns:**
+- `spec`: `'low' \| 'mid' \| 'high' \| null`
+- `score`: number or `null` (typically 0–100 with default weights)
+- `details.cpuCores`, `totalMemory` (GB), `screenSize` (estimated inches), `pixelDensity`, `osVersion`, `isTablet`
 
-```typescript
-{
-  spec: 'low' | 'mid' | 'high' | null;
-  details: {
-    totalMemory: number;      // GB
-    cpuCores: number;         // Number of cores
-    screenSize: number;       // Estimated inches (diagonal)
-    pixelDensity: number;     // PixelRatio scale factor
-    osVersion: string;        // OS version
-    isTablet: boolean;        // Tablet or phone
-  } | null;
-  isLoading: boolean;
-  error: Error | null;
-}
-```
-
-#### `useDeviceSpecSimple()`
-
-Simplified hook that returns only the spec category.
+### `useDeviceSpecSimple()`
 
 ```typescript
 const spec = useDeviceSpecSimple(); // 'low' | 'mid' | 'high' | null
 ```
 
-### Functions
+### `getDeviceSpec()` / `getDeviceSpecSimple()`
 
-#### `getDeviceSpec()`
+Async versions of the above. `getDeviceSpec()` returns `{ spec, score, details }`.
 
-```typescript
-const result = await getDeviceSpec();
-```
+### `configureDeviceSpec()`
 
-**Returns:** `Promise<DeviceSpecInfo>`
-
-#### `getDeviceSpecSimple()`
+Override weights or thresholds. Clears the in-memory cache.
 
 ```typescript
-const spec = await getDeviceSpecSimple(); // 'low' | 'mid' | 'high'
+import { configureDeviceSpec } from 'react-native-device-spec-info';
+
+configureDeviceSpec({
+  thresholds: { high: 75, mid: 45 },
+  weights: { ram: 50, cpu: 20, display: 20, os: 10 },
+});
 ```
 
-#### `clearDeviceSpecCache()`
+Defaults: weights RAM 35 / CPU 25 / display 25 / OS 15, thresholds high 70 / mid 40.
 
-Clears the in-memory cache. Useful in tests.
+### `clearDeviceSpecCache()` / `resetDeviceSpecConfig()`
 
-## Use Cases
-
-### 1. Performance Optimization
-
-```typescript
-const { spec } = useDeviceSpec();
-
-const imageQuality = spec === 'high' ? 'high' : spec === 'mid' ? 'medium' : 'low';
-const enableAnimations = spec !== 'low';
-const maxConcurrentDownloads = spec === 'high' ? 5 : spec === 'mid' ? 3 : 1;
-```
-
-### 2. Conditional Feature Rendering
-
-```typescript
-const { spec } = useDeviceSpec();
-
-return (
-  <View>
-    {(spec === 'high' || spec === 'mid') && <AdvancedFeature />}
-    {spec === 'low' && <SimplifiedFeature />}
-  </View>
-);
-```
-
-### 3. Adaptive UI/UX
-
-```typescript
-const { spec } = useDeviceSpec();
-
-const animationConfig = {
-  duration: spec === 'high' ? 300 : spec === 'mid' ? 200 : 150,
-  useNativeDriver: spec !== 'low',
-};
-```
-
-### 4. Asset Loading Strategy
-
-```typescript
-const { spec } = useDeviceSpec();
-
-const getImageSource = (name: string) => {
-  const quality = spec === 'high' ? '@3x' : spec === 'mid' ? '@2x' : '@1x';
-  return { uri: `${baseUrl}/${name}${quality}.jpg` };
-};
-```
+For tests and rare reset cases.
 
 ## How It Works
 
-The detector uses a scoring system based on:
+| Factor | Weight | 2026 criteria |
+|--------|--------|----------------|
+| **RAM** | 35% | 12GB max, 8GB high, 6GB upper-mid, 4GB mid, 3GB and under score very low |
+| **CPU cores** | 25% | 8 cores no longer max this axis (common on cheap Androids). 6-core flagships are not treated as low. |
+| **Display** | 25% | Pixel density + a small phone baseline. Large-phone diagonals do not inflate the score; tablets get a bump. |
+| **OS version** | 15% | Android 16+ and iOS 18+ (including year-style 26) cap this axis. |
 
-| Factor | Weight | Criteria |
-|--------|--------|----------|
-| **RAM** | 35% | 12GB+ max, 8GB high, 6GB upper-mid, 4GB mid, <4GB low |
-| **CPU cores** | 25% | 8+ high, 6 mid-high, 4 mid, <4 low |
-| **Display** | 25% | Pixel density + estimated diagonal (points/dp ÷ 163 iOS / 160 Android) |
-| **OS version** | 15% | Newer OS versions score higher |
+- **Score ≥70** → high
+- **Score 40–69** → mid
+- **Score <40** → low
 
-**Final categories:**
+### Fixture devices (unit-tested)
 
-- **Score ≥70** → High spec
-- **Score 40–69** → Mid spec
-- **Score <40** → Low spec
-
-Screen size is an estimate. Core count is not the same as chip performance (a cheap 8-core Android can outscore a 6-core iPhone on this axis alone).
-
-## Examples
-
-### Device Classification
-
-These are illustrative. Re-test after changing weights.
-
-| Device | RAM | Notes | Typical category |
-|--------|-----|-------|------------------|
-| iPhone 15 Pro | 8GB | 6 cores, high density | **High** or **mid** depending on score mix |
-| Samsung Galaxy A54 | 6GB | 8 cores | **Mid** |
-| Redmi 10A | 3GB | 8 cores, low RAM | **Low** / low-mid |
-
-## Contributing
-
-Contributions are welcome. Please open a pull request.
+| Shape | Inputs | Score | Category |
+|--------|--------|-------|----------|
+| Flagship Android | 12GB, 8 cores, Android 16 | 82 | high |
+| iPhone 15 Pro-shaped | 8GB, 6 cores, iOS 18 | 74 | high |
+| Galaxy A54-shaped | 6GB, 8 cores, Android 13 | 59 | mid |
+| Redmi 10A-shaped | 3GB, 4 cores, Android 11 | 28 | low |
 
 ## License
 
 MIT © [Listiananda Apriliawan](https://naandalist.com/)
-
-## Acknowledgments
 
 Built with [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info).
