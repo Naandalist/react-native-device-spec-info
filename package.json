@@ -1,9 +1,8 @@
 {
   "name": "react-native-device-spec-info",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Lightweight utility to get React Native device specifications (low/mid/high).",
   "main": "lib/index.js",
-  "module": "lib/index.esm.js",
   "types": "lib/index.d.ts",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
@@ -13,15 +12,15 @@
     "android",
     "ios",
     "RNDeviceSpecDetector.podspec",
+    "react-native.config.js",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "npm run build:cjs && npm run build:esm && npm run build:types",
-    "build:cjs": "tsc --module commonjs --outDir lib",
-    "build:esm": "tsc --module esnext --outDir /tmp/lib-esm --declaration false --declarationMap false && cp /tmp/lib-esm/index.js lib/index.esm.js && rm -rf /tmp/lib-esm",
-    "build:types": "tsc --emitDeclarationOnly --outDir lib",
+    "build": "tsc",
     "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "echo \"No tests yet\" && exit 0",
     "lint": "eslint src --ext .ts,.tsx",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
@@ -69,6 +68,5 @@
   },
   "engines": {
     "node": ">=14.0.0"
-  },
-  "packageManager": "yarn@4.12.0+sha512.f45ab632439a67f8bc759bf32ead036a1f413287b9042726b7cc4818b7b49e14e9423ba49b18f9e06ea4941c1ad062385b1d8760a8d5091a1a31e5f6219afca8"
+  }
 }
