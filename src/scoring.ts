@@ -4,7 +4,6 @@ export type PlatformOS = 'ios' | 'android' | string;
 
 export type ScoreWeights = {
   ram: number;
-  cpu: number;
   display: number;
   os: number;
 };
@@ -15,10 +14,9 @@ export type ScoreThresholds = {
 };
 
 export const DEFAULT_WEIGHTS: ScoreWeights = {
-  ram: 35,
-  cpu: 25,
-  display: 25,
-  os: 15,
+  ram: 50,
+  display: 30,
+  os: 20,
 };
 
 export const DEFAULT_THRESHOLDS: ScoreThresholds = {
@@ -37,18 +35,7 @@ export const ramRatio = (totalMemoryGB: number): number => {
   return 0;
 };
 
-/**
- * 8-core chips are common on cheap Androids, so they no longer max this axis.
- * 6-core flagship SoCs (many iPhones) should not be punished as "low CPU".
- */
-export const cpuRatio = (cpuCores: number): number => {
-  if (cpuCores >= 8) return 15 / 25;
-  if (cpuCores >= 6) return 12 / 25;
-  if (cpuCores >= 4) return 8 / 25;
-  return 3 / 25;
-};
-
-/** Density portion of the display weight (max 13 of default 25). */
+/** Density portion of the display weight (max 13 of a 25-point display split). */
 export const densityRatio = (pixelDensity: number): number => {
   if (pixelDensity >= 3) return 13 / 25;
   if (pixelDensity >= 2) return 8 / 25;
@@ -102,7 +89,6 @@ export const estimateScreenSizeInches = (
 
 export const calculateScore = (
   totalMemoryGB: number,
-  cpuCores: number,
   screenSize: number,
   pixelDensity: number,
   osVersion: string,
@@ -112,7 +98,6 @@ export const calculateScore = (
 ): number => {
   const score =
     weights.ram * ramRatio(totalMemoryGB) +
-    weights.cpu * cpuRatio(cpuCores) +
     weights.display * (densityRatio(pixelDensity) + sizeRatio(screenSize, isTablet)) +
     weights.os * osRatio(osVersion, platform);
 
