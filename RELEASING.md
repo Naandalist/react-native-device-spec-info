@@ -1,57 +1,45 @@
 # Releasing
 
-Pushing a version tag publishes to npm and opens a GitHub Release.
+Publishing uses **npm Trusted Publisher (OIDC)**. There is no `NPM_TOKEN`.
 
 ```bash
-# 1. package.json version and CHANGELOG already match, e.g. 1.2.0
 git checkout main && git pull
-
-# 2. Tag the current commit
 git tag v1.2.0
 git push origin v1.2.0
 ```
 
-That triggers `.github/workflows/release.yml`:
+`.github/workflows/release.yml` then:
 
-1. `npm test`
-2. `npm run build`
-3. `npm pack --dry-run`
-4. `npm publish --access public --provenance`
-5. `gh release create` from the latest `CHANGELOG.md` section
+1. installs, tests, builds
+2. `npm pack --dry-run`
+3. `npm publish --access public` over OIDC (provenance is automatic)
+4. opens a GitHub Release from the latest `CHANGELOG.md` section
 
-The tag **must** be `v` + `package.json` version (`v1.2.0`). A mismatch fails the job.
+The tag must be `v` + `package.json` version.
 
-## One-time setup
+## One-time: register the trusted publisher
 
-Pick one (trusted publisher is preferred):
+On [npmjs.com/package/react-native-device-spec-info](https://www.npmjs.com/package/react-native-device-spec-info) → **Settings** → **Trusted Publisher**:
 
-### A. npm Trusted Publisher (OIDC, no long-lived token)
+| Field | Value |
+|---|---|
+| Provider | GitHub Actions |
+| Organization or user | `Naandalist` |
+| Repository | `react-native-device-spec-info` |
+| Workflow filename | `release.yml` |
+| Environment | leave empty |
 
-1. npmjs.com → `react-native-device-spec-info` → **Trusted Publisher**
-2. Provider: GitHub Actions
-3. Organization or user: `Naandalist`
-4. Repository: `react-native-device-spec-info`
-5. Workflow filename: `release.yml`
+Existing trusted-publisher rows cannot be edited; delete and recreate if a field is wrong.
 
-### B. Classic token
-
-1. npmjs.com → Access Tokens → Granular Access Token
-   - Permission: **Read and write** on this package
-2. GitHub repo → Settings → Secrets and variables → Actions
-3. New repository secret name: `NPM_TOKEN`
-4. Value: the npm token
-
-The workflow sends `NODE_AUTH_TOKEN` from `secrets.NPM_TOKEN` and also requests `id-token: write` for provenance / trusted publishing.
+Requires npm CLI ≥ 11.5.1 (the workflow installs `npm@latest`) and a GitHub-hosted runner.
 
 ## Dry run
 
 Actions → **release** → Run workflow → leave **dry_run** checked.
 
-That installs, tests, builds, and packs. It does not publish.
-
 ## First 1.2.0 cut
 
-`main` is already `1.2.0`. After this workflow is merged and the secret / trusted publisher is set:
+`main` is already `1.2.0`. After this workflow is on `main` and the trusted publisher exists:
 
 ```bash
 git tag v1.2.0

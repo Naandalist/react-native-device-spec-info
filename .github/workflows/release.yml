@@ -11,6 +11,7 @@ on:
         type: boolean
         default: true
 
+# OIDC for npm Trusted Publisher. Do not set NODE_AUTH_TOKEN.
 permissions:
   contents: write
   id-token: write
@@ -23,10 +24,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # No registry-url: setup-node would write an empty _authToken and break OIDC.
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: '24'
+
+      - name: npm CLI for trusted publishing
+        run: npm install -g npm@latest
 
       - name: Install
         run: npm install --ignore-scripts --legacy-peer-deps
@@ -57,18 +61,17 @@ jobs:
       - name: Pack dry-run
         run: npm pack --dry-run
 
-      - name: Publish to npm
+      - name: Publish to npm (OIDC)
         if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          unset NODE_AUTH_TOKEN NPM_TOKEN
+          npm publish --access public
 
       - name: GitHub Release notes
         if: ${{ github.event_name == 'push' || inputs.dry_run == false }}
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.meta.outputs.tag }}
-          VERSION: ${{ steps.meta.outputs.version }}
         run: |
           NOTES=$(python3 - <<'PY'
           from pathlib import Path
