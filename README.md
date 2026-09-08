@@ -136,5 +136,3 @@ For tests and rare reset cases.
 ## License
 
 MIT © [Listiananda Apriliawan](https://naandalist.com/)
-
-Built with [react-native-device-info](https://github.com/react-native-device-info/react-native-device-info).
