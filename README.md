@@ -1,44 +1,36 @@
 # react-native-device-spec-info
 
-> Lightweight utility to detect React Native device specifications (low/mid/high).
+> JS-only helper to classify React Native devices as low / mid / high.
 
 [![npm version](https://img.shields.io/npm/v/react-native-device-spec-info.svg)](https://www.npmjs.com/package/react-native-device-spec-info)
 [![npm downloads](https://img.shields.io/npm/dm/react-native-device-spec-info.svg)](https://www.npmjs.com/package/react-native-device-spec-info)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Categorize mobile devices as **low-end**, **mid-range**, or **high-end** based on hardware specifications.
+Uses RAM, display, and OS version from [`react-native-device-info`](https://github.com/react-native-device-info/react-native-device-info) plus React Native `Dimensions` / `PixelRatio`. No custom native module.
 
 This is a heuristic, not a benchmark. Always test on real devices.
 
-**Peer dependency:** [`react-native-device-info`](https://github.com/react-native-device-info/react-native-device-info) `>= 10`.
+**Peer dependency:** `react-native-device-info` `>= 10`.
 
 ## Compatibility
 
 | Environment | Status |
 |---|---|
-| Bare React Native (autolinking) | Supported |
+| Bare React Native | Supported |
+| Expo Go | Supported for *this* package (still subject to `react-native-device-info`) |
+| Expo Dev Client / prebuild | Supported |
 | Example app | React Native **0.79** / React 19 |
 | Library peer range | `react-native >= 0.60` (not actively tested below 0.72) |
-| iOS | 11.0+ (podspec) |
-| Android | minSdk 21 |
-| Expo Dev Client / prebuild | Supported after a native rebuild |
-| Expo Go | **Not supported** (custom native CPU module) |
-| New Architecture | Legacy bridge module only (`RCT_EXPORT_MODULE` / `ReactContextBaseJavaModule`). Not a Turbo Module. |
+| New Architecture | Irrelevant — no native module in this package |
 | Web / Windows | Not supported |
 
-After install, rebuild the native app. `pod install` is required on iOS.
+No `pod install` and no native rebuild are required for *this* package. Rebuild only if you add or update `react-native-device-info`.
 
 ## Installation
 
 ```bash
 npm install react-native-device-spec-info react-native-device-info
 ```
-
-```bash
-cd ios && pod install && cd ..
-```
-
-Then rebuild (`npx react-native run-ios` / `run-android`).
 
 ## Quick Start
 
@@ -78,9 +70,9 @@ const { spec, score, details } = await getDeviceSpec();
 const { spec, score, details, isLoading, error } = useDeviceSpec();
 ```
 
-- `spec`: `'low' \| 'mid' \| 'high' \| null`
+- `spec`: `'low' | 'mid' | 'high' | null`
 - `score`: number or `null` (typically 0–100 with default weights)
-- `details.cpuCores`, `totalMemory` (GB), `screenSize` (estimated inches), `pixelDensity`, `osVersion`, `isTablet`
+- `details`: `totalMemory` (GB), `screenSize` (estimated inches), `pixelDensity`, `osVersion`, `isTablet`, `model`
 
 ### `useDeviceSpecSimple()`
 
@@ -101,11 +93,11 @@ import { configureDeviceSpec } from 'react-native-device-spec-info';
 
 configureDeviceSpec({
   thresholds: { high: 75, mid: 45 },
-  weights: { ram: 50, cpu: 20, display: 20, os: 10 },
+  weights: { ram: 60, display: 25, os: 15 },
 });
 ```
 
-Defaults: weights RAM 35 / CPU 25 / display 25 / OS 15, thresholds high 70 / mid 40.
+Defaults: weights RAM 50 / display 30 / OS 20, thresholds high 70 / mid 40.
 
 ### `clearDeviceSpecCache()` / `resetDeviceSpecConfig()`
 
@@ -113,12 +105,13 @@ For tests and rare reset cases.
 
 ## How It Works
 
-| Factor | Weight | 2026 criteria |
-|--------|--------|----------------|
-| **RAM** | 35% | 12GB max, 8GB high, 6GB upper-mid, 4GB mid, 3GB and under score very low |
-| **CPU cores** | 25% | 8 cores no longer max this axis (common on cheap Androids). 6-core flagships are not treated as low. |
-| **Display** | 25% | Pixel density + a small phone baseline. Large-phone diagonals do not inflate the score; tablets get a bump. |
-| **OS version** | 15% | Android 16+ and iOS 18+ (including year-style 26) cap this axis. |
+| Factor | Weight | Criteria |
+|--------|--------|----------|
+| **RAM** | 50% | 12GB max, 8GB high, 6GB upper-mid, 4GB mid, 3GB and under score very low |
+| **Display** | 30% | Pixel density + a small phone baseline. Large-phone diagonals do not inflate the score; tablets get a bump. |
+| **OS version** | 20% | Android 16+ and iOS 18+ (including year-style 26) cap this axis. |
+
+CPU core count is **not** used. It needed a custom native module and is a weak signal on modern phones.
 
 - **Score ≥70** → high
 - **Score 40–69** → mid
@@ -128,10 +121,18 @@ For tests and rare reset cases.
 
 | Shape | Inputs | Score | Category |
 |--------|--------|-------|----------|
-| Flagship Android | 12GB, 8 cores, Android 16 | 82 | high |
-| iPhone 15 Pro-shaped | 8GB, 6 cores, iOS 18 | 74 | high |
-| Galaxy A54-shaped | 6GB, 8 cores, Android 13 | 59 | mid |
-| Redmi 10A-shaped | 3GB, 4 cores, Android 11 | 28 | low |
+| Flagship Android | 12GB, density 3, Android 16 | 90.4 | high |
+| iPhone 15 Pro-shaped | 8GB, density 3, iOS 18 | 83.3 | high |
+| Galaxy A54-shaped | 6GB, density 2.5, Android 13 | 59.3 | mid |
+| Redmi 10A-shaped | 3GB, density 2, Android 11 | 25.4 | low |
+
+`details.model` is informational only. It is not scored and there is no chipset table to maintain.
+
+## Breaking changes in 2.0.0
+
+- Removed `android/`, `ios/`, the podspec, and `getCpuCoreCount` / `getCpuCoreCountSync`
+- Removed `details.cpuCores` and the `cpu` weight
+- Default weights are now RAM 50 / display 30 / OS 20
 
 ## License
 

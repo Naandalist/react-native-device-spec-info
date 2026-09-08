@@ -1,7 +1,6 @@
 import { Platform, Dimensions, PixelRatio } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import type { DeviceSpec, DeviceSpecInfo } from './types';
-import { getCpuCoreCount } from './native/RNCpuInfo';
 import {
   configureDeviceSpec as applyConfig,
   getDeviceSpecConfig,
@@ -28,11 +27,11 @@ let cached: DeviceSpecInfo | null = null;
 const detectDeviceSpec = async (): Promise<DeviceSpecInfo> => {
   const totalMemoryBytes = await DeviceInfo.getTotalMemory();
   const totalMemoryGB = totalMemoryBytes / 1024 ** 3;
-  const cpuCores = await getCpuCoreCount();
   const screenSize = getScreenSize();
   const pixelDensity = PixelRatio.get();
   const osVersion = DeviceInfo.getSystemVersion();
   const isTablet = DeviceInfo.isTablet();
+  const model = DeviceInfo.getModel();
   const { weights, thresholds } = getDeviceSpecConfig();
 
   const details = {
@@ -41,12 +40,11 @@ const detectDeviceSpec = async (): Promise<DeviceSpecInfo> => {
     pixelDensity,
     osVersion,
     isTablet,
-    cpuCores,
+    model,
   };
 
   const score = scoreHardware(
     totalMemoryGB,
-    cpuCores,
     screenSize,
     pixelDensity,
     osVersion,

@@ -9,7 +9,7 @@ export interface DeviceSpecInfo {
     pixelDensity: number;
     osVersion: string;
     isTablet: boolean;
-    cpuCores: number;
+    model: string;
   };
 }
 

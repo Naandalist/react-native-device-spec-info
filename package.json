@@ -1,7 +1,7 @@
 {
   "name": "react-native-device-spec-info",
-  "version": "1.2.0",
-  "description": "Lightweight utility to get React Native device specifications (low/mid/high).",
+  "version": "2.0.0",
+  "description": "JS-only helper to classify React Native devices as low/mid/high from RAM, display, and OS.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "react-native": "src/index.ts",
@@ -9,9 +9,6 @@
   "files": [
     "src",
     "lib",
-    "android",
-    "ios",
-    "RNDeviceSpecDetector.podspec",
     "react-native.config.js",
     "README.md",
     "LICENSE",
@@ -37,7 +34,6 @@
     "mid-range",
     "high-end",
     "ram",
-    "cpu",
     "hardware",
     "info",
     "mobile"
