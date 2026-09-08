@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-09-08
+
+### Changed
+
+- The package is JS-only. Classification uses RAM, display, and OS from
+  `react-native-device-info` plus `Dimensions` / `PixelRatio`.
+- Default weights are RAM 50 / display 30 / OS 20.
+- Expo Go works for *this* package (still subject to `react-native-device-info`).
+- `details.model` is included as an informational field. It is not scored.
+
+### Removed
+
+- Custom native CPU module (`android/`, `ios/`, podspec, `src/native/`).
+- `getCpuCoreCount` and `getCpuCoreCountSync`.
+- `details.cpuCores` and the `cpu` configure weight.
+
+Existing users should re-test categories. Fixture devices stay in the same
+buckets: flagship high, A54-shaped mid, Redmi 10A-shaped low.
+
 ## [1.2.0] - 2026-09-06
 
 ### Added
